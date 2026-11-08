@@ -2,7 +2,7 @@ import { Redis } from '@upstash/redis';
 
 const redis = Redis.fromEnv();
 const KEY = 'ghanta';
-const EMPTY = { count: 0, played: 0, running: false };
+const EMPTY = { count: 0, played: 0, running: false, startedAt: null, doneAt: null };
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -12,11 +12,13 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { count, played, running } = req.body || {};
+    const { count, played, running, startedAt, doneAt } = req.body || {};
     const s = {
       count: Number(count) || 0,
       played: Math.min(Number(played) || 0, 108),
-      running: !!running
+      running: !!running,
+      startedAt: Number(startedAt) || null,
+      doneAt: Number(doneAt) || null
     };
     await redis.set(KEY, s);
     return res.status(200).json(s);
