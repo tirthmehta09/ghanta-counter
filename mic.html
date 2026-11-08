@@ -11,7 +11,7 @@
   :root { --bg:#efe6d6; --fg:#2b2118; --muted:#7a6a58; --accent:#2f6b4f; --card:#faf5ea; --line:#d8c9ad; color-scheme:light; }
   body { margin:0; background:var(--bg); color:var(--fg); font-family:system-ui,sans-serif; padding:16px; box-sizing:border-box; display:flex; align-items:center; justify-content:center; }
   .card { width:min(100%,380px); background:var(--card); border:1px solid var(--line); border-radius:22px; padding:22px 18px; text-align:center; box-sizing:border-box; }
-  h1 { margin:0 0 6px; font-family:Georgia,serif; font-size:22px; font-weight:600; }
+  h1 { margin:0 0 6px; font-family:Georgia,serif; font-size:clamp(20px,5.5vw,24px); font-weight:600; }
   .hint { font-size:14px; color:var(--muted); margin-bottom:12px; }
   .opts { font-size:15px; margin-bottom:10px; }
   .opts label { margin:0 10px; cursor:pointer; }
@@ -28,6 +28,11 @@
   #status { font-size:14px; color:var(--muted); min-height:20px; margin-top:10px; }
   button.top { margin:0 0 4px; background:var(--accent); color:var(--card); border:none; border-radius:12px; padding:10px 20px; font-size:16px; cursor:pointer; }
   [hidden] { display:none !important; }
+  details.times { margin:10px 0; font-size:15px; }
+  details.times summary { cursor:pointer; color:var(--muted); margin-bottom:8px; }
+  details.times label { display:block; text-align:left; margin-bottom:8px; }
+  details.times input { display:block; width:100%; max-width:100%; box-sizing:border-box; font-size:16px; padding:8px; margin-top:4px; }
+  details.times button { width:100%; margin-top:4px; }
 </style>
 </head>
 <body>
@@ -81,14 +86,14 @@
 
   const selectedStart = () => parseInt(document.querySelector('input[name="startFrom"]:checked').value, 10);
 
-  const fmt = (ts) => ts ? new Date(ts).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '—';
+  const fmt = (ts) => ts ? new Date(ts).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : '—';
   function stamp() {
     if (!state.startedAt && state.count >= 1) state.startedAt = Date.now();
     if (!state.doneAt && state.count >= TOTAL) state.doneAt = Date.now();
   }
   function render() {
     countEl.textContent = state.count;
-    let html = `Started: ${fmt(state.startedAt)}<br>108 reached: ${fmt(state.doneAt)}`;
+    let html = `<div>Started: ${fmt(state.startedAt)}</div><div>108 reached: ${fmt(state.doneAt)}</div>`;
     if (state.count >= TOTAL) html += '<br><b>Shree Ghantakaran Mahavir Dev ni Jay</b>';
     progressEl.innerHTML = html;
   }
