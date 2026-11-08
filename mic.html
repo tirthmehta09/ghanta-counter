@@ -101,8 +101,8 @@
   }
 
   // Manual +/- for corrections. Only count changes, rings stay as they are.
-  plusBtn.addEventListener('click', () => { if (!loaded) return; state.count++; render(); save(); });
-  minusBtn.addEventListener('click', () => { if (!loaded) return; state.count = Math.max(0, state.count - 1); render(); save(); });
+  plusBtn.addEventListener('click', () => { if (!loaded) return; state.count++; if (state.played < TOTAL) state.played++; render(); save(); });
+  minusBtn.addEventListener('click', () => { if (!loaded) return; state.count = Math.max(0, state.count - 1); state.played = Math.max(0, state.played - 1); render(); save(); });
 
   function stopMic() {
     listening = false;
