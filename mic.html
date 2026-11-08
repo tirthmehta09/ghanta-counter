@@ -26,7 +26,11 @@
   button.secondary { background:var(--muted); }
   button:disabled { opacity:.4; cursor:not-allowed; }
   #status { font-size:14px; color:var(--muted); min-height:20px; margin-top:10px; }
-  button.top { margin:0 0 4px; background:var(--accent); color:var(--card); border:none; border-radius:12px; padding:10px 20px; font-size:16px; cursor:pointer; }
+  button.top { margin:0 0 4px; background:var(--accent); color:var(--card); border:none; border-radius:10px; padding:6px 12px; font-size:18px; line-height:1; cursor:pointer; }
+  .party { margin-top:14px; font-size:20px; font-weight:700; color:var(--accent); animation:pulse 1.2s ease-in-out infinite; }
+  .party .e { display:inline-block; animation:bounce .8s ease-in-out infinite alternate; }
+  @keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
+  @keyframes bounce { from { transform:translateY(0); } to { transform:translateY(-6px); } }
   [hidden] { display:none !important; }
   details.times { margin:10px 0; font-size:15px; }
   details.times summary { cursor:pointer; color:var(--muted); margin-bottom:8px; }
@@ -37,7 +41,7 @@
 </head>
 <body>
 <div class="card">
-  <button id="installBtn" class="top">Download App</button>
+  <button id="installBtn" class="top" aria-label="Download app" title="Download app">⬇</button>
   <h1>108 Ghantakarn Mahavir Havan Ghanta</h1>
   <div class="hint">Keep this phone near the ghanta. Each ring adds 1.</div>
   <div class="opts">
@@ -94,7 +98,7 @@
   function render() {
     countEl.textContent = state.count;
     let html = `<div>Started: ${fmt(state.startedAt)}</div><div>108 reached: ${fmt(state.doneAt)}</div>`;
-    if (state.count >= TOTAL) html += '<br><b>Shree Ghantakaran Mahavir Dev ni Jay</b>';
+    if (state.count >= TOTAL) html += '<div class="party"><span class="e">🎉</span> Shree Ghantakaran Mahavir Dev ni Jay <span class="e">🎉</span></div>';
     progressEl.innerHTML = html;
   }
 
