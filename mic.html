@@ -48,6 +48,7 @@
     <button class="secondary" id="plusBtn" aria-label="Plus one">+</button>
   </div>
   <button id="startBtn">Start</button>
+  <button id="stopBtn" class="secondary" disabled>Stop mic</button>
   <div id="status">Loading…</div>
 </div>
 
@@ -60,6 +61,7 @@
   const levelEl = document.getElementById('level');
   const sensEl = document.getElementById('sens');
   const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
   const plusBtn = document.getElementById('plusBtn');
   const minusBtn = document.getElementById('minusBtn');
   const radios = document.querySelectorAll('input[name="startFrom"]');
@@ -99,8 +101,8 @@
   }
 
   // Manual +/- for corrections. Only count changes, rings stay as they are.
-  plusBtn.addEventListener('click', () => { if (!loaded || listening) return; state.count++; render(); save(); });
-  minusBtn.addEventListener('click', () => { if (!loaded || listening) return; state.count = Math.max(0, state.count - 1); render(); save(); });
+  plusBtn.addEventListener('click', () => { if (!loaded) return; state.count++; render(); save(); });
+  minusBtn.addEventListener('click', () => { if (!loaded) return; state.count = Math.max(0, state.count - 1); render(); save(); });
 
   function stopMic() {
     listening = false;
@@ -110,8 +112,8 @@
     micStream = null; audioCtx = null; analyser = null;
     levelEl.style.width = '0%';
     startBtn.disabled = false;
+    stopBtn.disabled = true;
     radios.forEach(r => r.disabled = false);
-    plusBtn.disabled = false; minusBtn.disabled = false;
   }
 
   function registerRing() {
@@ -179,13 +181,20 @@
     audioCtx.createMediaStreamSource(micStream).connect(analyser);
     listening = true;
     startBtn.disabled = true;
+    stopBtn.disabled = false;
     radios.forEach(r => r.disabled = true);
-    plusBtn.disabled = true; minusBtn.disabled = true;
     statusEl.textContent = 'Listening. Ring the ghanta.';
     analyze();
   }
 
   startBtn.addEventListener('click', start);
+  stopBtn.addEventListener('click', () => {
+    if (!listening) return;
+    stopMic();
+    state.running = false;
+    save();
+    statusEl.textContent = 'Mic stopped. Use + and − to count.';
+  });
   radios.forEach(r => r.addEventListener('change', () => {
     if (state.played === 0 && !listening && loaded) { state.count = selectedStart(); render(); }
   }));
