@@ -1,11 +1,12 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
 
+const redis = Redis.fromEnv();
 const KEY = 'ghanta';
 const EMPTY = { count: 0, played: 0, running: false };
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const s = (await kv.get(KEY)) || EMPTY;
+    const s = (await redis.get(KEY)) || EMPTY;
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json(s);
   }
@@ -17,7 +18,7 @@ export default async function handler(req, res) {
       played: Math.min(Number(played) || 0, 108),
       running: !!running
     };
-    await kv.set(KEY, s);
+    await redis.set(KEY, s);
     return res.status(200).json(s);
   }
 
