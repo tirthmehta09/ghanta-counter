@@ -74,9 +74,16 @@
 
   const selectedStart = () => parseInt(document.querySelector('input[name="startFrom"]:checked').value, 10);
 
+  const fmt = (ts) => ts ? new Date(ts).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : '—';
+  function stamp() {
+    if (!state.startedAt && state.count >= 1) state.startedAt = Date.now();
+    if (!state.doneAt && state.count >= TOTAL) state.doneAt = Date.now();
+  }
   function render() {
     countEl.textContent = state.count;
-    progressEl.textContent = `Bells: ${state.played} / ${TOTAL}`;
+    let html = `Started: ${fmt(state.startedAt)}<br>108 reached: ${fmt(state.doneAt)}`;
+    if (state.count >= TOTAL) html += '<br><b>Shree Ghantakaran Mahavir Dev ni Jay</b>';
+    progressEl.innerHTML = html;
   }
 
   function save() {
@@ -101,7 +108,7 @@
   }
 
   // Manual +/- for corrections. Only count changes, rings stay as they are.
-  plusBtn.addEventListener('click', () => { if (!loaded) return; state.count++; if (state.played < TOTAL) state.played++; render(); save(); });
+  plusBtn.addEventListener('click', () => { if (!loaded) return; state.count++; if (state.played < TOTAL) state.played++; stamp(); render(); save(); });
   minusBtn.addEventListener('click', () => { if (!loaded) return; state.count = Math.max(0, state.count - 1); state.played = Math.max(0, state.played - 1); render(); save(); });
 
   function stopMic() {
@@ -119,6 +126,7 @@
   function registerRing() {
     state.played++;
     state.count++;
+    stamp();
     render();
     if (state.played >= TOTAL) {
       state.running = false;
