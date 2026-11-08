@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#2f6b4f">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Cormorant+Garamond:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
 <title>108 Ghantakarn Mahavir Havan Ghanta</title>
 <style>
   :root { --bg:#efe6d6; --fg:#2b2118; --muted:#7a6a58; --accent:#2f6b4f; --card:#faf5ea; --line:#d8c9ad; color-scheme:light; }
@@ -30,9 +33,9 @@
   .deity { position:relative; width:min(62vw,280px); height:min(62vw,280px); object-fit:cover; border-radius:50%; border:5px solid #ffd76a; animation:rise .9s cubic-bezier(.2,.9,.3,1.25) both, glow 2s ease-in-out .9s infinite alternate; }
   @keyframes rise { from { transform:scale(.2); opacity:0; } to { transform:scale(1); opacity:1; } }
   @keyframes glow { from { box-shadow:0 0 25px #ffd76a, 0 0 60px #ff9d2e; } to { box-shadow:0 0 70px #fff1b8, 0 0 130px #ff7a1a; } }
-  .big { position:relative; margin:22px 0 6px; font-family:Georgia,serif; font-size:clamp(24px,7vw,46px); font-weight:700; color:#ffd76a; text-shadow:0 0 16px #ff9d2e; animation:shimmer 2.2s ease-in-out infinite; }
+  .big { position:relative; margin:22px 0 6px; font-family:'Cinzel',Georgia,serif; font-size:clamp(24px,7vw,46px); font-weight:700; letter-spacing:.05em; line-height:1.25; color:#ffd76a; background:linear-gradient(180deg,#fff6c9 0%,#ffd76a 45%,#e8952a 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; filter:drop-shadow(0 0 10px rgba(255,157,46,.6)); animation:shimmer 2.2s ease-in-out infinite; }
   @keyframes shimmer { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
-  .sub { position:relative; font-size:clamp(16px,4.5vw,22px); color:#fff3d6; }
+  .sub { position:relative; margin-top:28px; font-family:'Cormorant Garamond',Georgia,serif; font-style:italic; font-weight:600; font-size:clamp(20px,5.5vw,28px); color:#fff3d6; letter-spacing:.02em; text-shadow:0 0 12px rgba(255,157,46,.5); }
   .piece { position:absolute; top:-10%; font-size:26px; pointer-events:none; animation:fall linear forwards; }
   @keyframes fall { to { transform:translateY(120vh) rotate(720deg); } }
   .close { position:absolute; top:14px; right:14px; width:42px; height:42px; border:none; border-radius:50%; background:rgba(255,255,255,.18); color:#fff; font-size:22px; cursor:pointer; }
