@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f6b4f">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg">
+<title>Ghanta Mic</title>
+<style>
+  :root { --bg:#efe6d6; --fg:#2b2118; --muted:#7a6a58; --accent:#2f6b4f; --card:#faf5ea; --line:#d8c9ad; color-scheme:light; }
+  body { margin:0; min-height:100vh; background:var(--bg); color:var(--fg); font-family:system-ui,sans-serif; padding:16px; box-sizing:border-box; display:flex; align-items:center; justify-content:center; }
+  .card { width:min(100%,380px); background:var(--card); border:1px solid var(--line); border-radius:22px; padding:22px 18px; text-align:center; box-sizing:border-box; }
+  h1 { margin:0 0 6px; font-family:Georgia,serif; font-size:22px; font-weight:600; }
+  .hint { font-size:14px; color:var(--muted); margin-bottom:12px; }
+  .opts { font-size:15px; margin-bottom:10px; }
+  .opts label { margin:0 10px; cursor:pointer; }
+  .meter { height:8px; background:var(--line); border-radius:8px; overflow:hidden; margin:8px 0; }
+  #level { height:100%; width:0%; background:var(--accent); }
+  .sens { font-size:14px; color:var(--muted); margin-bottom:10px; }
+  #count { font-family:Georgia,serif; font-size:clamp(64px,22vw,96px); font-weight:700; color:var(--accent); line-height:1.1; margin:8px 0 2px; font-variant-numeric:tabular-nums; }
+  #progress { font-size:16px; color:var(--muted); }
+  .adjust { display:flex; gap:10px; justify-content:center; margin:12px 0; }
+  .adjust button { font-size:22px; width:64px; padding:8px 0; }
+  button { font-size:18px; padding:12px 28px; border:none; border-radius:12px; cursor:pointer; color:var(--card); background:var(--accent); }
+  button.secondary { background:var(--muted); }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  #status { font-size:14px; color:var(--muted); min-height:20px; margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Ghanta Mic</h1>
+  <div class="hint">Keep this phone near the ghanta. Each ring adds 1.</div>
+  <div class="opts">
+    Start from:
+    <label><input type="radio" name="startFrom" value="0" checked> 0</label>
+    <label><input type="radio" name="startFrom" value="1"> 1</label>
+  </div>
+  <div class="meter"><div id="level"></div></div>
+  <div class="sens">Sensitivity <input type="range" id="sens" min="1" max="10" value="5"></div>
+  <div id="count">0</div>
+  <div id="progress">Bells: 0 / 108</div>
+  <div class="adjust">
+    <button class="secondary" id="minusBtn" aria-label="Minus one">−</button>
+    <button class="secondary" id="plusBtn" aria-label="Plus one">+</button>
+  </div>
+  <button id="startBtn">Start</button>
+  <div id="status">Loading…</div>
+</div>
+
+<script>
+(() => {
+  const TOTAL = 108, REFRACTORY_MS = 700;
+  const countEl = document.getElementById('count');
+  const progressEl = document.getElementById('progress');
+  const statusEl = document.getElementById('status');
+  const levelEl = document.getElementById('level');
+  const sensEl = document.getElementById('sens');
+  const startBtn = document.getElementById('startBtn');
+  const plusBtn = document.getElementById('plusBtn');
+  const minusBtn = document.getElementById('minusBtn');
+  const radios = document.querySelectorAll('input[name="startFrom"]');
+
+  let state = { count: 0, played: 0, running: false };
+  let loaded = false;
+  let listening = false, audioCtx = null, analyser = null, micStream = null, rafId = null;
+  let prevRms = 0, lastHitTime = 0, noiseFloor = 0.01;
+  let saveChain = Promise.resolve();
+
+  const selectedStart = () => parseInt(document.querySelector('input[name="startFrom"]:checked').value, 10);
+
+  function render() {
+    countEl.textContent = state.count;
+    progressEl.textContent = `Bells: ${state.played} / ${TOTAL}`;
+  }
+
+  function save() {
+    const body = JSON.stringify(state);
+    saveChain = saveChain.then(() =>
+      fetch('/api/state', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
+        .catch(() => { statusEl.textContent = 'Could not save. Check internet.'; })
+    );
+  }
+
+  // Load the saved count so nothing resets when the app is reopened.
+  async function load() {
+    try {
+      const r = await fetch('/api/state', { cache: 'no-store' });
+      state = await r.json();
+      loaded = true;
+      render();
+      statusEl.textContent = 'Ready.';
+    } catch (e) {
+      statusEl.textContent = 'Could not load the saved count.';
+    }
+  }
+
+  // Manual +/- for corrections. Only count changes, rings stay as they are.
+  plusBtn.addEventListener('click', () => { if (!loaded || listening) return; state.count++; render(); save(); });
+  minusBtn.addEventListener('click', () => { if (!loaded || listening) return; state.count = Math.max(0, state.count - 1); render(); save(); });
+
+  function stopMic() {
+    listening = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    if (micStream) micStream.getTracks().forEach(t => t.stop());
+    if (audioCtx) audioCtx.close();
+    micStream = null; audioCtx = null; analyser = null;
+    levelEl.style.width = '0%';
+    startBtn.disabled = false;
+    radios.forEach(r => r.disabled = false);
+    plusBtn.disabled = false; minusBtn.disabled = false;
+  }
+
+  function registerRing() {
+    state.played++;
+    state.count++;
+    render();
+    if (state.played >= TOTAL) {
+      state.running = false;
+      save();
+      stopMic();
+      statusEl.textContent = 'All 108 rings counted.';
+      return;
+    }
+    save();
+    statusEl.textContent = `Ring heard (${state.played} / ${TOTAL})`;
+  }
+
+  function analyze() {
+    if (!listening) return;
+    const data = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(data);
+    let sum = 0;
+    for (let i = 0; i < data.length; i++) sum += data[i] * data[i];
+    const rms = Math.sqrt(sum / data.length);
+
+    if (rms < noiseFloor * 1.5) noiseFloor = noiseFloor * 0.98 + rms * 0.02;
+    noiseFloor = Math.max(noiseFloor, 0.002);
+
+    const s = parseInt(sensEl.value, 10);
+    const threshold = noiseFloor * (6 - s * 0.4);
+    const minLoudness = 0.02 - s * 0.0015;
+    levelEl.style.width = Math.min(100, rms * 600) + '%';
+
+    const now = performance.now();
+    const sharpRise = rms > prevRms * 1.6 && rms > prevRms + 0.005;
+    if (rms > threshold && rms > minLoudness && sharpRise && now - lastHitTime > REFRACTORY_MS && state.played < TOTAL) {
+      lastHitTime = now;
+      registerRing();
+    }
+    prevRms = rms;
+    rafId = requestAnimationFrame(analyze);
+  }
+
+  async function start() {
+    if (listening || !loaded) return;
+    if (state.played >= TOTAL) state.played = 0;
+    if (state.played === 0) state.count = selectedStart();
+    state.running = true;
+    render();
+    save();
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+      });
+    } catch (e) {
+      statusEl.textContent = 'Microphone permission denied. Allow it and try again.';
+      state.running = false;
+      save();
+      return;
+    }
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    audioCtx.createMediaStreamSource(micStream).connect(analyser);
+    listening = true;
+    startBtn.disabled = true;
+    radios.forEach(r => r.disabled = true);
+    plusBtn.disabled = true; minusBtn.disabled = true;
+    statusEl.textContent = 'Listening. Ring the ghanta.';
+    analyze();
+  }
+
+  startBtn.addEventListener('click', start);
+  radios.forEach(r => r.addEventListener('change', () => {
+    if (state.played === 0 && !listening && loaded) { state.count = selectedStart(); render(); }
+  }));
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+  load();
+})();
+</script>
+</body>
+</html>
