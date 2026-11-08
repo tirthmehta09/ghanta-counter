@@ -28,13 +28,9 @@
   #status { font-size:14px; color:var(--muted); min-height:20px; margin-top:10px; }
   button.top { margin:0 0 4px; background:var(--accent); color:var(--card); border:none; border-radius:12px; padding:10px 20px; font-size:16px; cursor:pointer; }
   [hidden] { display:none !important; }
-  #banner { position:fixed; top:0; left:0; right:0; z-index:100; padding:18px 12px; text-align:center; font-family:Georgia,serif; font-size:clamp(20px,6vw,30px); font-weight:700; color:#2b1a05; background:linear-gradient(90deg,#f5c542,#fff1b8,#f5c542,#fff1b8); background-size:300% 100%; animation:shine 3s linear infinite, drop .6s ease-out; box-shadow:0 6px 24px rgba(0,0,0,.25); }
-  @keyframes shine { from { background-position:0 0; } to { background-position:300% 0; } }
-  @keyframes drop { from { transform:translateY(-100%); } to { transform:translateY(0); } }
 </style>
 </head>
 <body>
-<div id="banner" hidden>Shree Ghantakaran Mahavir Dev ni Jay</div>
 <div class="card">
   <button id="installBtn" class="top">Download App</button>
   <h1>108 Ghantakarn Mahavir Havan Ghanta</h1>
@@ -95,7 +91,6 @@
     let html = `Started: ${fmt(state.startedAt)}<br>108 reached: ${fmt(state.doneAt)}`;
     if (state.count >= TOTAL) html += '<br><b>Shree Ghantakaran Mahavir Dev ni Jay</b>';
     progressEl.innerHTML = html;
-    document.getElementById('banner').hidden = !(state.count >= TOTAL);
   }
 
   function save() {
