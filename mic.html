@@ -36,8 +36,8 @@
   <div class="hint">Keep this phone near the ghanta. Each ring adds 1.</div>
   <div class="opts">
     Start from:
-    <label><input type="radio" name="startFrom" value="0" checked> 0</label>
-    <label><input type="radio" name="startFrom" value="1"> 1</label>
+    <label><input type="radio" name="startFrom" value="0" checked disabled> 0</label>
+    <label><input type="radio" name="startFrom" value="1" disabled> 1</label>
   </div>
   <div class="meter"><div id="level"></div></div>
   <div class="sens">Sensitivity <input type="range" id="sens" min="1" max="10" value="5"></div>
@@ -47,7 +47,7 @@
     <button class="secondary" id="minusBtn" aria-label="Minus one">−</button>
     <button class="secondary" id="plusBtn" aria-label="Plus one">+</button>
   </div>
-  <button id="startBtn">Start</button>
+  <button id="startBtn" disabled>Start</button>
   <button id="stopBtn" class="secondary" disabled>Stop mic</button>
   <div id="status">Loading…</div>
 </div>
@@ -111,7 +111,7 @@
     if (audioCtx) audioCtx.close();
     micStream = null; audioCtx = null; analyser = null;
     levelEl.style.width = '0%';
-    startBtn.disabled = false;
+    startBtn.disabled = true;
     stopBtn.disabled = true;
     radios.forEach(r => r.disabled = false);
   }
@@ -159,7 +159,6 @@
 
   async function start() {
     if (listening || !loaded) return;
-    if (state.played >= TOTAL) { state.played = 0; state.count = selectedStart(); }
     state.running = true;
     render();
     save();
@@ -194,9 +193,6 @@
     save();
     statusEl.textContent = 'Mic stopped. Use + and − to count.';
   });
-  radios.forEach(r => r.addEventListener('change', () => {
-    if (state.played === 0 && !listening && loaded) { state.count = selectedStart(); render(); }
-  }));
 
   let deferredPrompt = null;
   const installBtn = document.getElementById('installBtn');
