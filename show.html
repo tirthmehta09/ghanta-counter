@@ -1,0 +1,42 @@
+<!doctype html>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ghanta Count</title>
+<style>
+  :root { --bg:#efe6d6; --fg:#2b2118; --muted:#7a6a58; --accent:#2f6b4f; --card:#faf5ea; --line:#d8c9ad; color-scheme:light; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg); color:var(--fg); font-family:system-ui,sans-serif; padding:16px; box-sizing:border-box; }
+  .card { width:min(100%,380px); background:var(--card); border:1px solid var(--line); border-radius:22px; padding:24px 20px; text-align:center; box-sizing:border-box; }
+  h1 { margin:0 0 6px; font-family:Georgia,serif; font-size:24px; font-weight:600; }
+  #count { font-family:Georgia,serif; font-size:clamp(72px,26vw,120px); font-weight:700; color:var(--accent); line-height:1.1; margin:10px 0 4px; font-variant-numeric:tabular-nums; }
+  #progress { font-size:18px; color:var(--muted); }
+  #status { font-size:14px; color:var(--muted); margin-top:12px; }
+</style>
+
+<div class="card">
+  <h1>108 Ghanta Counter</h1>
+  <div id="count">0</div>
+  <div id="progress">Bells: 0 / 108</div>
+  <div id="status">Connecting…</div>
+</div>
+
+<script>
+(() => {
+  const TOTAL = 108;
+  const countEl = document.getElementById('count');
+  const progressEl = document.getElementById('progress');
+  const statusEl = document.getElementById('status');
+
+  async function load() {
+    try {
+      const r = await fetch('/api/state', { cache: 'no-store' });
+      const s = await r.json();
+      countEl.textContent = s.count;
+      progressEl.textContent = `Bells: ${s.played} / ${TOTAL}`;
+      statusEl.textContent = s.running ? 'Live' : 'Waiting for ghanta';
+    } catch (e) {
+      statusEl.textContent = 'Reconnecting…';
+    }
+  }
+  load();
+  setInterval(load, 1000);
+})();
+</script>
