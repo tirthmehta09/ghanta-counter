@@ -159,8 +159,7 @@
 
   async function start() {
     if (listening || !loaded) return;
-    if (state.played >= TOTAL) state.played = 0;
-    if (state.played === 0) state.count = selectedStart();
+    if (state.played >= TOTAL) { state.played = 0; state.count = selectedStart(); }
     state.running = true;
     render();
     save();
