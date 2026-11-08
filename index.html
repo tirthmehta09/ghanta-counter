@@ -23,6 +23,19 @@
   @keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
   @keyframes bounce { from { transform:translateY(0); } to { transform:translateY(-6px); } }
   [hidden] { display:none !important; }
+  #celebrate { position:fixed; inset:0; z-index:200; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; box-sizing:border-box; background:radial-gradient(circle at 50% 40%, #5a3106 0%, #1d0e02 75%); }
+  #celebrate[hidden] { display:none; }
+  .rays { position:absolute; left:50%; top:50%; width:200vmax; height:200vmax; margin:-100vmax 0 0 -100vmax; background:repeating-conic-gradient(from 0deg, rgba(255,215,120,.22) 0deg 7deg, transparent 7deg 20deg); animation:spin 20s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .deity { position:relative; width:min(62vw,280px); height:min(62vw,280px); object-fit:cover; border-radius:50%; border:5px solid #ffd76a; animation:rise .9s cubic-bezier(.2,.9,.3,1.25) both, glow 2s ease-in-out .9s infinite alternate; }
+  @keyframes rise { from { transform:scale(.2); opacity:0; } to { transform:scale(1); opacity:1; } }
+  @keyframes glow { from { box-shadow:0 0 25px #ffd76a, 0 0 60px #ff9d2e; } to { box-shadow:0 0 70px #fff1b8, 0 0 130px #ff7a1a; } }
+  .big { position:relative; margin:22px 0 6px; font-family:Georgia,serif; font-size:clamp(24px,7vw,46px); font-weight:700; color:#ffd76a; text-shadow:0 0 16px #ff9d2e; animation:shimmer 2.2s ease-in-out infinite; }
+  @keyframes shimmer { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
+  .sub { position:relative; font-size:clamp(16px,4.5vw,22px); color:#fff3d6; }
+  .piece { position:absolute; top:-10%; font-size:26px; pointer-events:none; animation:fall linear forwards; }
+  @keyframes fall { to { transform:translateY(120vh) rotate(720deg); } }
+  .close { position:absolute; top:14px; right:14px; width:42px; height:42px; border:none; border-radius:50%; background:rgba(255,255,255,.18); color:#fff; font-size:22px; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -35,6 +48,13 @@
   <div id="count">0</div>
   <div id="progress">Bells: 0 / 108</div>
   <div id="status"></div>
+</div>
+<div id="celebrate" hidden>
+  <div class="rays"></div>
+  <img class="deity" src="/deity.png" alt="Ghantakarn Mahavir">
+  <div class="big">Shree Ghantakaran Mahavir Dev ni Jay</div>
+  <div class="sub">108 Ghanta completed 🙏</div>
+  <button class="close" aria-label="Close">×</button>
 </div>
 <script>
 (() => {
@@ -52,11 +72,31 @@
       let html = `<div>Started: ${fmt(s.startedAt)}</div><div>108 reached: ${fmt(s.doneAt)}</div>`;
       if (s.count >= TOTAL) html += '<div class="party"><span class="e">🎉</span> Shree Ghantakaran Mahavir Dev ni Jay <span class="e">🎉</span></div>';
       progressEl.innerHTML = html;
+      if (s.count >= TOTAL) showCelebration();
       statusEl.textContent = '';
     } catch (e) {
       statusEl.textContent = 'Reconnecting…';
     }
   }
+  const celebrate = document.getElementById('celebrate');
+  let celebrated = false;
+  function showCelebration() {
+    if (celebrated) return;
+    celebrated = true;
+    celebrate.hidden = false;
+    const emojis = ['🎉', '🌼', '✨', '🪔', '🙏', '🎊'];
+    for (let i = 0; i < 70; i++) {
+      const p = document.createElement('span');
+      p.className = 'piece';
+      p.textContent = emojis[i % emojis.length];
+      p.style.left = (Math.random() * 100) + '%';
+      p.style.animationDuration = (3 + Math.random() * 3) + 's';
+      p.style.animationDelay = (Math.random() * 2.5) + 's';
+      celebrate.appendChild(p);
+    }
+  }
+  celebrate.querySelector('.close').addEventListener('click', () => { celebrate.hidden = true; });
+
   load();
   setInterval(load, 1000);
   let deferredPrompt = null;
