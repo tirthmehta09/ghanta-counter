@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#2f6b4f">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/icon.svg">
-<title>108 Ghanta Counter</title>
+<title>108 Ghantakarn Mahavir Havan Ghanta</title>
 <style>
   :root { --bg:#efe6d6; --fg:#2b2118; --muted:#7a6a58; --accent:#2f6b4f; --card:#faf5ea; --line:#d8c9ad; color-scheme:light; }
-  body { margin:0; min-height:100vh; background:var(--bg); color:var(--fg); font-family:system-ui,sans-serif; padding:16px; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  body { margin:0; background:var(--bg); color:var(--fg); font-family:system-ui,sans-serif; padding:16px; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; gap:16px; }
   h1 { margin:8px 0 0; font-family:Georgia,serif; font-size:24px; font-weight:600; text-align:center; }
   .video { width:min(100%,640px); aspect-ratio:16/9; background:#000; border-radius:16px; overflow:hidden; }
   .video iframe { width:100%; height:100%; border:0; }
@@ -17,10 +17,12 @@
   #count { font-family:Georgia,serif; font-size:clamp(72px,24vw,120px); font-weight:700; color:var(--accent); line-height:1.1; font-variant-numeric:tabular-nums; }
   #progress { font-size:18px; color:var(--muted); }
   #status { font-size:14px; color:var(--muted); margin-top:10px; }
+  button.top { margin:0 0 4px; background:var(--accent); color:var(--card); border:none; border-radius:12px; padding:10px 20px; font-size:16px; cursor:pointer; }
 </style>
 </head>
 <body>
-<h1>108 Ghanta Counter</h1>
+<button id="installBtn" class="top">Download App</button>
+<h1>108 Ghantakarn Mahavir Havan Ghanta</h1>
 <div class="video">
   <iframe src="https://www.youtube.com/embed/pkZ41J_5e5Y" title="YouTube live" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
@@ -49,6 +51,13 @@
   }
   load();
   setInterval(load, 1000);
+  let deferredPrompt = null;
+  const installBtn = document.getElementById('installBtn');
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+  installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; return; }
+    document.getElementById('status').textContent = 'Chrome: tap the ⋮ menu, then "Install app". iPhone: tap Share, then "Add to Home Screen".';
+  });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
 })();
 </script>
